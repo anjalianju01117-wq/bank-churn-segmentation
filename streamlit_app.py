@@ -67,7 +67,7 @@ st.markdown("""
 # ── Load & prepare data ───────────────────────────────────────────────────────
 @st.cache_data
 def load_data():
-    df = pd.read_csv("European_Bank__1_.csv")
+    df = pd.read_csv("European_Bank (2).csv")
     df["AgeGroup"]   = pd.cut(df["Age"],    bins=[0,30,45,60,100],
                                labels=["Under 30","30–45","46–60","Over 60"])
     df["CreditBand"] = pd.cut(df["CreditScore"], bins=[0,550,700,851],
@@ -154,7 +154,6 @@ if page == "📊 Overview Dashboard":
 
     col1, col2 = st.columns(2)
 
-    # Donut chart
     with col1:
         fig, ax = plt.subplots(figsize=(5,4))
         sizes  = [retained, churned]
@@ -170,7 +169,6 @@ if page == "📊 Overview Dashboard":
         ax.set_title("Retained vs Churned", fontsize=13, fontweight="bold", color=BLUE)
         st.pyplot(fig); plt.close()
 
-    # Churn by geography
     with col2:
         geo_churn = fdf.groupby("Geography")["Exited"].mean()*100
         fig, ax = plt.subplots(figsize=(5,4))
@@ -179,7 +177,6 @@ if page == "📊 Overview Dashboard":
                   geo_colors, "Churn Rate by Country")
         st.pyplot(fig); plt.close()
 
-    # Bottom row
     col3, col4 = st.columns(2)
 
     with col3:
@@ -247,8 +244,8 @@ elif page == "🌍 Geographic Analysis":
         fig, ax = plt.subplots(figsize=(6,4))
         x = np.arange(len(geo_stats))
         w = 0.35
-        b1 = ax.bar(x-w/2, geo_stats["Customers"]-geo_stats["Churned"], w, label="Retained", color=GREEN)
-        b2 = ax.bar(x+w/2, geo_stats["Churned"], w, label="Churned", color=ACCENT)
+        ax.bar(x-w/2, geo_stats["Customers"]-geo_stats["Churned"], w, label="Retained", color=GREEN)
+        ax.bar(x+w/2, geo_stats["Churned"], w, label="Churned", color=ACCENT)
         ax.set_xticks(x); ax.set_xticklabels(geo_stats["Geography"])
         ax.legend(); ax.set_title("Churned vs Retained by Country", fontsize=13, fontweight="bold", color=BLUE)
         ax.spines[["top","right"]].set_visible(False)
@@ -282,7 +279,6 @@ elif page == "👥 Demographic Analysis":
 
     col1, col2 = st.columns(2)
 
-    # Age group
     with col1:
         st.markdown("<div class='section-title'>Churn by Age Group</div>", unsafe_allow_html=True)
         age_data = fdf.groupby("AgeGroup", observed=True).agg(
@@ -296,7 +292,6 @@ elif page == "👥 Demographic Analysis":
         st.dataframe(age_data.rename(columns={"AgeGroup":"Age Group","ChurnRate":"Churn Rate (%)"}),
                      use_container_width=True, hide_index=True)
 
-    # Gender
     with col2:
         st.markdown("<div class='section-title'>Churn by Gender</div>", unsafe_allow_html=True)
         gen_data = fdf.groupby("Gender").agg(
@@ -310,7 +305,6 @@ elif page == "👥 Demographic Analysis":
         st.dataframe(gen_data.rename(columns={"ChurnRate":"Churn Rate (%)"}),
                      use_container_width=True, hide_index=True)
 
-    # Active members
     st.markdown("<div class='section-title'>Active vs Inactive Members</div>", unsafe_allow_html=True)
     col3, col4 = st.columns(2)
 
@@ -356,7 +350,6 @@ elif page == "💰 Financial Segmentation":
 
     col1, col2 = st.columns(2)
 
-    # Products
     with col1:
         st.markdown("<div class='section-title'>Churn by Number of Products</div>", unsafe_allow_html=True)
         prod_data = fdf.groupby("NumOfProducts").agg(
@@ -371,7 +364,6 @@ elif page == "💰 Financial Segmentation":
         st.dataframe(prod_data.rename(columns={"NumOfProducts":"Products","ChurnRate":"Churn Rate (%)"}),
                      use_container_width=True, hide_index=True)
 
-    # Balance segments
     with col2:
         st.markdown("<div class='section-title'>Churn by Balance Segment</div>", unsafe_allow_html=True)
         bal_data = fdf.groupby("BalanceSeg", observed=True).agg(
@@ -385,7 +377,6 @@ elif page == "💰 Financial Segmentation":
         st.dataframe(bal_data.rename(columns={"BalanceSeg":"Balance Segment","ChurnRate":"Churn Rate (%)"}),
                      use_container_width=True, hide_index=True)
 
-    # Credit score & High-value
     col3, col4 = st.columns(2)
 
     with col3:
@@ -447,7 +438,6 @@ elif page == "🔍 Segment Explorer":
 
     col_a, col_b = st.columns(2)
 
-    # Primary bar chart
     with col_a:
         seg1 = fdf.groupby(dim_options[dim1], observed=True)["Exited"].mean()*100
         seg1 = seg1.round(1).reset_index()
@@ -458,7 +448,6 @@ elif page == "🔍 Segment Explorer":
                   colors, f"Churn Rate by {dim1}")
         st.pyplot(fig); plt.close()
 
-        # Table
         seg1_full = fdf.groupby(dim_options[dim1], observed=True).agg(
             Customers=("Exited","count"), Churned=("Exited","sum"),
             ChurnRate=("Exited","mean")).reset_index()
@@ -466,7 +455,6 @@ elif page == "🔍 Segment Explorer":
         seg1_full.columns = [dim1,"Customers","Churned","Churn Rate (%)"]
         st.dataframe(seg1_full, use_container_width=True, hide_index=True)
 
-    # Heatmap
     with col_b:
         try:
             pivot = fdf.groupby([dim_options[dim1], dim_options[dim2]], observed=True)["Exited"].mean()*100
@@ -482,7 +470,6 @@ elif page == "🔍 Segment Explorer":
         except Exception:
             st.info("Select two different dimensions to view the heatmap.")
 
-    # Summary stats
     st.markdown("<div class='section-title'>Segment Summary</div>", unsafe_allow_html=True)
     total     = len(fdf)
     churned   = fdf["Exited"].sum()
